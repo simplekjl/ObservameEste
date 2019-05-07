@@ -8,7 +8,7 @@ This project has a single purpose of showing you step by step the basics of RxJa
 - Every concept will be isolated in its own branch for your convinience with regular updates on the concepts and libraries.
 
 
-#Table of concepts
+# Table of concepts
 
 - Concurrency and Multi-threading with Schedulers ( concurrency-threading ) 
 
