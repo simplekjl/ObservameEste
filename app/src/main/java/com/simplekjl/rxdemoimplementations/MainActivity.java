@@ -17,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
     private Observable<String> myObservable;
     private Observer<String> myObserver;
     private TextView mtextView;
+    // disposable object to be access in the class
+    private Disposable disposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
         myObserver = new Observer<String>() {
             @Override
             public void onSubscribe(Disposable d) {
-
+                // let's assign from the observer the disposable Object to our member class variable
+                disposable = d;
                 Log.i(TAG, "onSubscribe: ");
 
             }
@@ -56,5 +59,13 @@ public class MainActivity extends AppCompatActivity {
         };
         // subscriptions to the observer
         myObservable.subscribe(myObserver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // disposing the subscription. This will prevent the activity from crashing while
+        // performing actions in the UI
+        disposable.dispose();
     }
 }
