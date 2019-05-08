@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
-                // since the just operator will send the data as it is we will get the array at once so we iterate on it
+                // since the fromArray operator will send one string at the time we proceed
                 // to add values in the textView
                 mtextView.append(s);
                 mtextView.append(" ");
