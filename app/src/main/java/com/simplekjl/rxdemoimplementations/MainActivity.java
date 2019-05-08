@@ -14,12 +14,12 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "myApp";
+    // array of string we are going to emit with the observable
     private String[] greetings = {"Hola", ",", "Welcome to RxAndroid, +", " RxJava"};
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private Observable<String[]> myObservable;
-    private Observable<String> myObservableArray;
-    private DisposableObserver<String[]> myObserver;
-    private DisposableObserver<String> myObserver2;
+    // sincce we are going to emit one string at the time we have to change the value the observable emits
+    private Observable<String> myObservable;
+    private DisposableObserver<String> myObserver;
     private TextView mtextView;
 
     @Override
@@ -29,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
 
         mtextView = findViewById(R.id.my_text);
 
-        myObservable = Observable.just(greetings);
-        // let's test same string but know as an array
-        myObservableArray = Observable.just("Hola", ",", "Welcome to RxAndroid, +", " RxJava");
+        // we are changing from 'just' to 'fromArray' which is going to emit one string at the time when we subscribe
+        // to it.
+        myObservable = Observable.fromArray(greetings);
 
 
         // Rx Java allow to write very small blocks of code that allow you to work faster and cleaner since the
@@ -43,26 +43,21 @@ public class MainActivity extends AppCompatActivity {
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribeWith(getSingleItemObserver()));
-        // adding the second observer and subscribing to the composite disposable
-        compositeDisposable
-                .add(myObservableArray
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(getArrayObserver()));
+
 
     }
 
-    private DisposableObserver<String[]> getSingleItemObserver() {
-        myObserver = new DisposableObserver<String[]>() {
+    private DisposableObserver<String> getSingleItemObserver() {
+        myObserver = new DisposableObserver<String>() {
             @Override
-            public void onNext(String[] s) {
+            public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
                 // since the just operator will send the data as it is we will get the array at once so we iterate on it
                 // to add values in the textView
-                for (String note : s) {
-                    mtextView.append(note);
-                    mtextView.append(" ");
-                }
+                mtextView.append(s);
+                mtextView.append(" ");
+                // let's make a toast to see it work in a different way
+                Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -76,29 +71,5 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         return myObserver;
-    }
-
-    private DisposableObserver<String> getArrayObserver() {
-
-        myObserver2 = new DisposableObserver<String>() {
-            @Override
-            public void onNext(String s) {
-                Log.i(TAG, "onNext: ");
-                // passing several objects to the just operator will end up sending each item individually
-                Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.i(TAG, "onError: ");
-            }
-
-            @Override
-            public void onComplete() {
-                Log.i(TAG, "onComplete: ");
-            }
-        };
-        return myObserver2;
     }
 }
