@@ -15,6 +15,7 @@ import java.util.Random;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Function;
@@ -22,9 +23,9 @@ import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Map
+ * FlatMap
  * <p>
- * We can transform the items from one type to another one
+ *
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -62,15 +63,27 @@ public class MainActivity extends AppCompatActivity {
                 .add(myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .map(new Function<Student, Student>() {
+//                        .map(new Function<Student, Student>() {
+//                            // we need to create a new function where the first parameter is the
+//                            // input tyoe data and the second one the ooutput
+//                            @Override
+//                            public Student apply(Student student) throws Exception {
+//                                // we need to override the apply function since we want to change
+//                                // the data
+//                                student.setName(student.getName().toUpperCase());
+//                                return student;
+//                            }
+//                        })
+                        .flatMap( new Function<Student, ObservableSource<Student>>(){
                             // we need to create a new function where the first parameter is the
                             // input tyoe data and the second one the ooutput
                             @Override
-                            public Student apply(Student student) throws Exception {
-                                // we need to override the apply function since we want to change
-                                // the data
+                            public Observable<Student> apply(Student student) throws Exception {
+                                // this operation allow us to make more operations in between
+                                // this use case let's say we need to make another call given a specific student
+                                // thi can be easily done here
                                 student.setName(student.getName().toUpperCase());
-                                return student;
+                                return Observable.just(student);
                             }
                         })
                         .subscribeWith(myObserver));
