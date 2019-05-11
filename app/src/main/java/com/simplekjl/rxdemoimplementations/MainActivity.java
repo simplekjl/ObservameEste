@@ -63,25 +63,11 @@ public class MainActivity extends AppCompatActivity {
                 .add(myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-//                        .map(new Function<Student, Student>() {
-//                            // we need to create a new function where the first parameter is the
-//                            // input tyoe data and the second one the ooutput
-//                            @Override
-//                            public Student apply(Student student) throws Exception {
-//                                // we need to override the apply function since we want to change
-//                                // the data
-//                                student.setName(student.getName().toUpperCase());
-//                                return student;
-//                            }
-//                        })
-                        .flatMap( new Function<Student, ObservableSource<Student>>(){
-                            // we need to create a new function where the first parameter is the
-                            // input tyoe data and the second one the ooutput
+                        .concatMap( new Function<Student, ObservableSource<Student>>(){
                             @Override
                             public Observable<Student> apply(Student student) throws Exception {
-                                // this operation allow us to make more operations in between
-                                // this use case let's say we need to make another call given a specific student
-                                // thi can be easily done here
+                                // concat will preserve the order of the elements if
+                                // speed is important for the requirement use flatmap
                                 student.setName(student.getName().toUpperCase());
                                 return Observable.just(student);
                             }
