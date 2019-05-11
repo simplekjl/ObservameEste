@@ -17,13 +17,14 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Create operator
+ * Map
  * <p>
- * Create operator allow you to have control of the date before emit it
+ * We can transform the items from one type to another one
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -61,6 +62,17 @@ public class MainActivity extends AppCompatActivity {
                 .add(myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
+                        .map(new Function<Student, Student>() {
+                            // we need to create a new function where the first parameter is the
+                            // input tyoe data and the second one the ooutput
+                            @Override
+                            public Student apply(Student student) throws Exception {
+                                // we need to override the apply function since we want to change
+                                // the data
+                                student.setName(student.getName().toUpperCase());
+                                return student;
+                            }
+                        })
                         .subscribeWith(myObserver));
 
     }
@@ -88,13 +100,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // this elements represent a stream of data that can come form the network or database
-    public List<Student> getStudents(){
+    public List<Student> getStudents() {
         List<Student> mList = new ArrayList<>();
-        String[] names = {"Paola","Juan","Jhon","Erick","Lukas"};
-        String[] emails = {"anoes@gmail.com","oksfd@gmail.com","wer23@gmail.com"
-                ,"asdfw3@gmail.com","3rt4@gmail.com"};
+        String[] names = {"Paola", "Juan", "Jhon", "Erick", "Lukas"};
+        String[] emails = {"anoes@gmail.com", "oksfd@gmail.com", "wer23@gmail.com"
+                , "asdfw3@gmail.com", "3rt4@gmail.com"};
 
-        String[] registration = {"TODAY","12.03.19","01.02.19","19.03.18","07.05.19"};
+        String[] registration = {"TODAY", "12.03.19", "01.02.19", "19.03.18", "07.05.19"};
 
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
