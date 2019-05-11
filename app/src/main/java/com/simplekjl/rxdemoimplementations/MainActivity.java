@@ -15,17 +15,14 @@ import java.util.Random;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * FlatMap
+ * Buffer example
  * <p>
- *
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private String mTestString = "Hello from RxJava";
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Observable<Student> myObservable;
-    private DisposableObserver<Student> myObserver;
+    private DisposableObserver<List<Student>> myObserver;
 
     private TextView mtextView;
 
@@ -63,27 +60,25 @@ public class MainActivity extends AppCompatActivity {
                 .add(myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .concatMap( new Function<Student, ObservableSource<Student>>(){
-                            @Override
-                            public Observable<Student> apply(Student student) throws Exception {
-                                // concat will preserve the order of the elements if
-                                // speed is important for the requirement use flatmap
-                                student.setName(student.getName().toUpperCase());
-                                return Observable.just(student);
-                            }
-                        })
+                        // number of elements we want to buffer before emitting them
+                        .buffer(2)
                         .subscribeWith(myObserver));
 
     }
 
-    private DisposableObserver<Student> getObserverOne() {
-        return new DisposableObserver<Student>() {
+    private DisposableObserver<List<Student>> getObserverOne() {
+        return new DisposableObserver<List<Student>>() {
             @Override
-            public void onNext(Student s) {
+            public void onNext(List<Student> s) {
                 Log.i(TAG, "onNext: ");
-                // here we are setting all the names to the same TextView
-                mtextView.append(s.getName());
+                // we are going to receive two items instead of one
+                for (Student student : s) {
+                    mtextView.append(student.getName());
+                    mtextView.append("\n");
+                }
+                mtextView.append("end of batch ");
                 mtextView.append("\n");
+
             }
 
             @Override
