@@ -4,14 +4,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 
 /**
- * Composite Disposable
- * In one class you can have more than one observers . So you will have so many observers to dispose.
+ * What are Composite Disposable?
+ * Composite Disposable allow us to add many Disposable observables and dispose them all at once.
+ *
  */
 
 public class MainActivity extends AppCompatActivity {
@@ -21,10 +24,8 @@ public class MainActivity extends AppCompatActivity {
     private Observable<String> myObservable;
     private DisposableObserver<String> myObserver;
     private DisposableObserver<String> myObserver2;
-    private TextView mtextView;
-
-    //key object for composite disposable
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private TextView mtextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +35,22 @@ public class MainActivity extends AppCompatActivity {
         mtextView = findViewById(R.id.my_text);
 
         myObservable = Observable.just(mTestString);
+
+        myObserver = getObserverOne();
+
+        myObserver2 = getObserverTwo();
+
+        compositeDisposable.add(myObserver);
+        compositeDisposable.add(myObserver2);
+        // subscriptions to the observer
+        myObservable.subscribe(myObserver);
+        myObservable.subscribe(myObserver2);
+    }
+
+    private DisposableObserver<String> getObserverOne() {
         // creating the new instance of the DisposableObserver note that this object just have
         // 3 override methods instead of 4
-        myObserver = new DisposableObserver<String>() {
+        return new DisposableObserver<String>() {
             @Override
             public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
@@ -54,16 +68,19 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onComplete: ");
             }
         };
-        compositeDisposable.add(myObserver);
-        myObservable = Observable.just(mTestString);
-        //
-        // let's create a second object to observe our main observable and merge this in a Composite disposable
-        myObserver2 = new DisposableObserver<String>() {
+    }
+
+    private DisposableObserver<String> getObserverTwo() {
+        // creating the new instance of the DisposableObserver note that this object just have
+        // 3 override methods instead of 4
+        return new DisposableObserver<String>() {
             @Override
             public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
-                // launching a toast with the same observer
-                Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+                // setting the value when the Observable dispatches it
+                Toast.makeText(getApplicationContext()
+                        , getString(R.string.greetings_from_observer_2)
+                        , Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -76,18 +93,14 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onComplete: ");
             }
         };
-        // adding  second observer into the composite Object
-        compositeDisposable.add(myObserver2);
-        // subscriptions to the observer
-        myObservable.subscribe(myObserver2);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // composite disposable allow us to dispose many objects at once, using clear() if we use
+        // dispose() the object will no longer being able to be used to keep adding and dispose
+        // Objects
         compositeDisposable.clear();
-        // if we forget to dispose one of the observers we can get a memory leak, this is why we use the Coposite Disposable
-//        myObserver.dispose();
-//        myObserver2.dispose();
     }
 }

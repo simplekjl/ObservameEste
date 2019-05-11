@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RxDemoImplementations</string>
+    <string name="greetings_from_observer_2">Hola, from observer 2</string>
 </resources>
