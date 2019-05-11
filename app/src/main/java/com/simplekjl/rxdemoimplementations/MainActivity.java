@@ -3,24 +3,36 @@ package com.simplekjl.rxdemoimplementations;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.simplekjl.rxdemoimplementations.model.Student;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
+/**
+ * Create operator
+ * <p>
+ * Create operator allow you to have control of the date before emit it
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "myApp";
     private String mTestString = "Hello from RxJava";
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private Observable<String> myObservable;
-    private DisposableObserver<String> myObserver;
-    private DisposableObserver<String> myObserver2;
+    private Observable<Student> myObservable;
+    private DisposableObserver<Student> myObserver;
+
     private TextView mtextView;
 
     @Override
@@ -30,35 +42,37 @@ public class MainActivity extends AppCompatActivity {
 
         mtextView = findViewById(R.id.my_text);
 
-        myObservable = Observable.just(mTestString);
+        // starting to create the observer using the data source
+        myObservable = Observable.create(new ObservableOnSubscribe<Student>() {
+            @Override
+            public void subscribe(ObservableEmitter<Student> emitter) throws Exception {
+                // here we placed the object we want to emit
+                List<Student> mList = getStudents();
+                for (Student student : mList) {
+                    emitter.onNext(student);
+                }
+                // once we are done emmiting data we call onNext
+                emitter.onComplete();
+            }
+        });
 
         myObserver = getObserverOne();
-        myObserver2 = getObserverTwo();
-        // Rx Java allow to write very small blocks of code that allow you to work faster and cleaner since the
-        // code becomes readable and effective with the right use.
-        // Lets start Adding to the ComposableDisposable our first Observer which is going to be performing it's
-        // logic on the io() thread and observing in the Mainthread
         compositeDisposable
                 .add(myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribeWith(myObserver));
-        // adding the second observer and subscribing to the composite disposable
-        compositeDisposable
-                .add(myObservable
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(myObserver2));
 
     }
 
-    private DisposableObserver<String> getObserverOne() {
-        return new DisposableObserver<String>() {
+    private DisposableObserver<Student> getObserverOne() {
+        return new DisposableObserver<Student>() {
             @Override
-            public void onNext(String s) {
+            public void onNext(Student s) {
                 Log.i(TAG, "onNext: ");
-                // setting the value when the Observable dispatches it
-                mtextView.setText(s);
+                // here we are setting all the names to the same TextView
+                mtextView.append(s.getName());
+                mtextView.append("\n");
             }
 
             @Override
@@ -73,24 +87,24 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    private DisposableObserver<String> getObserverTwo() {
-        return new DisposableObserver<String>() {
-            @Override
-            public void onNext(String s) {
-                Log.i(TAG, "onNext: ");
-                // launching a toast
-                Toast.makeText(MainActivity.this, getString(R.string.greetings_from_observer_two), Toast.LENGTH_SHORT).show();
-            }
+    // this elements represent a stream of data that can come form the network or database
+    public List<Student> getStudents(){
+        List<Student> mList = new ArrayList<>();
+        String[] names = {"Paola","Juan","Jhon","Erick","Lukas"};
+        String[] emails = {"anoes@gmail.com","oksfd@gmail.com","wer23@gmail.com"
+                ,"asdfw3@gmail.com","3rt4@gmail.com"};
 
-            @Override
-            public void onError(Throwable e) {
-                Log.i(TAG, "onError: ");
-            }
+        String[] registration = {"TODAY","12.03.19","01.02.19","19.03.18","07.05.19"};
 
-            @Override
-            public void onComplete() {
-                Log.i(TAG, "onComplete: ");
-            }
-        };
+        Random random = new Random();
+        for (int i = 0; i < 5; i++) {
+            Student student = new Student();
+            student.setName(names[random.nextInt(4)]);
+            student.setAge(random.nextInt(27));
+            student.setEmail(emails[random.nextInt(4)]);
+            student.setRegistrationDate(registration[random.nextInt(4)]);
+            mList.add(student);
+        }
+        return mList;
     }
 }
