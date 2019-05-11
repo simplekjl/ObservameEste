@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -30,7 +32,28 @@ public class MainActivity extends AppCompatActivity {
 
         myObservable = Observable.just(mTestString);
 
-        myObserver = new DisposableObserver<String>() {
+        myObserver = getObserverOne();
+        myObserver2 = getObserverTwo();
+        // Rx Java allow to write very small blocks of code that allow you to work faster and cleaner since the
+        // code becomes readable and effective with the right use.
+        // Lets start Adding to the ComposableDisposable our first Observer which is going to be performing it's
+        // logic on the io() thread and observing in the Mainthread
+        compositeDisposable
+                .add(myObservable
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeWith(myObserver));
+        // adding the second observer and subscribing to the composite disposable
+        compositeDisposable
+                .add(myObservable
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeWith(myObserver2));
+
+    }
+
+    private DisposableObserver<String> getObserverOne() {
+        return new DisposableObserver<String>() {
             @Override
             public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
@@ -48,12 +71,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onComplete: ");
             }
         };
-        myObserver2 = new DisposableObserver<String>() {
+    }
+
+    private DisposableObserver<String> getObserverTwo() {
+        return new DisposableObserver<String>() {
             @Override
             public void onNext(String s) {
                 Log.i(TAG, "onNext: ");
                 // launching a toast
-                Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, getString(R.string.greetings_from_observer_two), Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -66,21 +92,5 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onComplete: ");
             }
         };
-        // Rx Java allow to write very small blocks of code that allow you to work faster and cleaner since the
-        // code becomes readable and effective with the right use.
-        // Lets start Adding to the ComposableDisposable our first Observer which is going to be performing it's
-        // logic on the io() thread and observing in the Mainthread
-        compositeDisposable
-                .add(myObservable
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(myObserver));
-        // adding the second observer and subscribing to the composite disposable
-        compositeDisposable
-                .add(myObservable
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeWith(myObserver2));
-
     }
 }
