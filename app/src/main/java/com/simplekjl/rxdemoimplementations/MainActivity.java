@@ -14,7 +14,9 @@ import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Filter operator using Predicates
+ * Skip operator
+ *
+ * will allow you to skip n number of the list
  * <p>
  */
 public class MainActivity extends AppCompatActivity {
@@ -40,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         myObservable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                // distinct will avoid to consume the repetitive values
-                .distinct()
+                // skip operator will allow you to skip the n numbers in the list
+                .skip(3)
                 .subscribe(myObserver);
 
         //we add the observer into the disposable
