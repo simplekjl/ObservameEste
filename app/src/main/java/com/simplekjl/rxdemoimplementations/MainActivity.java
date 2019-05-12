@@ -6,22 +6,15 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.simplekjl.rxdemoimplementations.model.Student;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Predicate;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Buffer example
+ * Filter operator using Predicates
  * <p>
  */
 public class MainActivity extends AppCompatActivity {
@@ -29,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myApp";
     private String mTestString = "Hello from RxJava";
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private Observable<Student> myObservable;
-    private DisposableObserver<List<Student>> myObserver;
+    private Observable<Integer> myObservable;
+    private DisposableObserver<Integer> myObserver;
 
     private TextView mtextView;
 
@@ -41,42 +34,34 @@ public class MainActivity extends AppCompatActivity {
 
         mtextView = findViewById(R.id.my_text);
 
-        // starting to create the observer using the data source
-        myObservable = Observable.create(new ObservableOnSubscribe<Student>() {
-            @Override
-            public void subscribe(ObservableEmitter<Student> emitter) throws Exception {
-                // here we placed the object we want to emit
-                List<Student> mList = getStudents();
-                for (Student student : mList) {
-                    emitter.onNext(student);
-                }
-                // once we are done emmiting data we call onNext
-                emitter.onComplete();
-            }
-        });
+        myObservable = Observable.range(1,20);
 
-        myObserver = getObserverOne();
-        compositeDisposable
-                .add(myObservable
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        // number of elements we want to buffer before emitting them
-                        .buffer(2)
-                        .subscribeWith(myObserver));
+        myObserver = getRangeIntegerObserver();
+
+        myObservable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) throws Exception {
+                        // here we can filter the object simply using the logic we need to easily
+                        // skip some of them from the rest
+                        return integer %3 == 0;
+                    }
+                }).subscribe(myObserver);
+
+        //we add the observer into the disposable
+        compositeDisposable.add(myObserver);
 
     }
 
-    private DisposableObserver<List<Student>> getObserverOne() {
-        return new DisposableObserver<List<Student>>() {
+    private DisposableObserver<Integer> getRangeIntegerObserver() {
+        return new DisposableObserver<Integer>() {
             @Override
-            public void onNext(List<Student> s) {
+            public void onNext(Integer integer) {
                 Log.i(TAG, "onNext: ");
-                // we are going to receive two items instead of one
-                for (Student student : s) {
-                    mtextView.append(student.getName());
-                    mtextView.append("\n");
-                }
-                mtextView.append("end of batch ");
+
+                // we will add the values to the TextView
+                mtextView.append(" number accepted: "+ integer);
                 mtextView.append("\n");
 
             }
@@ -93,24 +78,10 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    // this elements represent a stream of data that can come form the network or database
-    public List<Student> getStudents() {
-        List<Student> mList = new ArrayList<>();
-        String[] names = {"Paola", "Juan", "Jhon", "Erick", "Lukas"};
-        String[] emails = {"anoes@gmail.com", "oksfd@gmail.com", "wer23@gmail.com"
-                , "asdfw3@gmail.com", "3rt4@gmail.com"};
-
-        String[] registration = {"TODAY", "12.03.19", "01.02.19", "19.03.18", "07.05.19"};
-
-        Random random = new Random();
-        for (int i = 0; i < 5; i++) {
-            Student student = new Student();
-            student.setName(names[random.nextInt(4)]);
-            student.setAge(random.nextInt(27));
-            student.setEmail(emails[random.nextInt(4)]);
-            student.setRegistrationDate(registration[random.nextInt(4)]);
-            mList.add(student);
-        }
-        return mList;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // we clear the subscriptions
+        compositeDisposable.clear();
     }
 }
