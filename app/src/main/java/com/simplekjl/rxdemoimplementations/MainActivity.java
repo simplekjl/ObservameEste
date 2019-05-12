@@ -34,20 +34,15 @@ public class MainActivity extends AppCompatActivity {
 
         mtextView = findViewById(R.id.my_text);
 
-        myObservable = Observable.range(1,20);
+        myObservable = Observable.just(1,2,4,4,2,2,4,5,7,12);
 
         myObserver = getRangeIntegerObserver();
 
         myObservable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .filter(new Predicate<Integer>() {
-                    @Override
-                    public boolean test(Integer integer) throws Exception {
-                        // here we can filter the object simply using the logic we need to easily
-                        // skip some of them from the rest
-                        return integer %3 == 0;
-                    }
-                }).subscribe(myObserver);
+                // distinct will avoid to consume the repetitive values
+                .distinct()
+                .subscribe(myObserver);
 
         //we add the observer into the disposable
         compositeDisposable.add(myObserver);
