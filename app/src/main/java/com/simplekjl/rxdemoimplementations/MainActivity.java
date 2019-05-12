@@ -14,7 +14,7 @@ import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Skip operator
+ * Skip last operator
  *
  * will allow you to skip n number of the list
  * <p>
@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         myObservable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                // skip operator will allow you to skip the n numbers in the list
-                .skip(3)
+                // skip operator will allow you to skip the LAST n numbers in the list
+                .skipLast(3)
                 .subscribe(myObserver);
 
         //we add the observer into the disposable
