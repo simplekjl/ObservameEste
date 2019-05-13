@@ -1,6 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.simplekjl.rxdemoimplementations"
@@ -28,4 +32,5 @@ dependencies {
     /** RxJava and RxAndroid **/
     implementation "io.reactivex.rxjava2:rxjava:2.2.8"
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'com.jakewharton.rxbinding2:rxbinding:2.2.0'
 }
